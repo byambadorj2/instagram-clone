@@ -1,8 +1,18 @@
+import { auth } from "@/auth";
 import PostsGrid from "@/components/PostsGrid";
+import { prisma } from "@/db";
 import { CheckIcon, ChevronLeft, CogIcon } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const session = await auth();
+  const profile = await prisma.profile.findFirst({
+    where: { email: session?.user?.email as string },
+  });
+  if (!profile) {
+    return redirect("/settings");
+  }
   return (
     <main>
       <section className="flex justify-between items-center">
@@ -10,13 +20,15 @@ export default function ProfilePage() {
           <ChevronLeft />
         </button>
         <div className="font-bold flex items-center gap-2">
-          My_name
+          {profile?.username}
           <div className="size-5 rounded-full bg-ig-red inline-flex justify-center items-center text-white">
             <CheckIcon size={16} />
           </div>
         </div>
         <button>
-          <CogIcon />
+          <Link href={"/settings"}>
+            <CogIcon />
+          </Link>
         </button>
       </section>
       <section className="mt-8 flex justify-center">
@@ -32,12 +44,9 @@ export default function ProfilePage() {
         </div>
       </section>
       <section className="mt-4 text-center">
-        <h1 className="text-xl font-bold">Byambaa</h1>
-        <p className=" text-gray-500 mt-1 mb-1">Business Account</p>
-        <p>
-          Entrepreneur Husband, Father <br />
-          contact: byambadorj993@gmail.com
-        </p>
+        <h1 className="text-xl font-bold">{profile?.name}</h1>
+        <p className=" text-gray-500 mt-1 mb-1">{profile?.subtitle}</p>
+        <p>{profile?.bio}</p>
       </section>
       <section className="mt-4">
         <div className="flex justify-center gap-4 font-bold">
